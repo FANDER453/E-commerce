@@ -1,0 +1,7 @@
+.tinpu{
+    background: #2e2e2e;
+    border: 1px solid rgba(0, 0, 0, 0.33);
+    width: 0;
+    height: 10px;
+    border-radius: 50%;
+}
