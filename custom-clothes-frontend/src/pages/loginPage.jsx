@@ -1,12 +1,30 @@
 import React from 'react';
-import axios from 'axios'
+import {api} from "../api";
 
-const loginPage = () => {
+const LoginPage = () => {
+
+     async function login() {
+        const response = await api.post('/auth/login',{
+            name: 'saber3',
+            password: '123456'
+        })
+            .then(response => {
+                if (response.data.accessToken) {
+                    localStorage.setItem('accessToken', response.data.accessToken);
+                }
+                if (response.data.success) {
+                console.log('zaebis')
+         }})
+            .catch(error => console.log(error))
+
+    }
+
+
     return (
         <div>
-            <h1>pipki</h1>
+            <button onClick={login}>gffgfg</button>
         </div>
     );
 };
 
-export default loginPage;
+export default LoginPage;
