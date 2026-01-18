@@ -1,5 +1,5 @@
 import React from 'react';
-import axios from 'axios';
+
 import {api} from "../api";
 
 
@@ -9,16 +9,13 @@ const RegisterPage = () => {
     async function register() {
 
         await api.post('auth/registration', {
-            name: "saber11",
+            name: "saber3",
             password: "123456",
-            email: "saber11@gmail.com"
+            email: "saber3@gmail.com"
+
         })
-        // try {
-        //     const res = await api.get('/auth/d');
-        //     console.log(res.data);
-        // } catch (err) {
-        //     console.error(err);
-        // }
+            .then(response => console.log(response.data))
+            .catch(error => console.log(error))
     }
 
     return (
