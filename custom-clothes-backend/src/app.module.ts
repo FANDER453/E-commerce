@@ -20,7 +20,7 @@ import {ConfigModule} from "@nestjs/config";
     AuthModule,
     UserModule,
     ConfigModule.forRoot({
-        envFilePath: 'C:\\Users\\sn1f1r\\Desktop\\Project\\E-commerce\\custom-clothes-backend\\src\\.env'
+        envFilePath: 'C:\\Users\\saber966\\Desktop\\project\\E-commerce\\custom-clothes-backend\\src\\.env'
     })
     ],
   controllers: [AppController],

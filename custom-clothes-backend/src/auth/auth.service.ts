@@ -16,18 +16,25 @@ export class AuthService {
     private readonly tokenService: TokenService ) {
     }
     async registration(dto: AuthDto){
-        const {name, email} = dto
+        const { name, email } = dto;
+        const checkUserByEmail = await this.authService.findOneBy({
+          email,
+        });
+
+        const checkUserByUserName = await this.authService.findOneBy({
+          name,
+        });
+        if (checkUserByEmail || checkUserByUserName) {
+          throw new ConflictException('A user with such data already exists.');
+        }
         const password = await bcrypt.hash(dto.password, 10)
         const user = this.authService.create({name, password, email})
-
-        const checkUserByEmail = await this.authService.findOneBy({email: user.email})
-
-        const checkUserByUserName = await this.authService.findOneBy({name: user.name})
-        if(checkUserByEmail || checkUserByUserName){
-            throw new ConflictException('A user with such data already exists.')
-        }
-
-        return this.authService.save(user)
+        const userSaved = await this.authService.save(user);
+        const userDto = new TokenDto(userSaved);
+        const payload = {...userDto}
+        const token = await this.tokenService.generateToken(payload);
+        await this.tokenService.saveToken(user.id, token?.refreshToken);
+        return {user: userSaved, token: token}
     }
     async login(dto: LoginDto){
         const {name, password} = dto
@@ -53,6 +60,7 @@ export class AuthService {
         const a = await this.tokenService.saveToken(user.id, refreshToken)
         console.log(a)
         return{
+            user,
             accessToken,
             refreshToken
         }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 import express from 'express';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
@@ -10,31 +10,34 @@ export class AuthController {
   }
 
   @Post('registration')
-  async registration(@Body() dto: AuthDto) {
-    await this.authService.registration(dto);
-    return {
+  async registration(@Body() dto: AuthDto, @Res() res: express.Response) {
+    const userEntity = await this.authService.registration(dto);
+    const { user, token } = userEntity;
+    const accessToken = token?.accessToken
+    console.log(user, accessToken);
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+    });
+    res.json({
       success: true,
-      message: 'User create',
-      statusCode: 201,
-    };
+      accessToken: accessToken,
+      id: user.id,
+      email: user.email,
+    });
   }
 
   @Post('login')
-  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: express.Response){const token = await this.authService.login(dto)
-        res.cookie('refreshToken', token.refreshToken, {
-          httpOnly:true,
-          secure: false,
-          sameSite: 'lax',
-          path: '/auth',
-          maxAge: 7 * 24 * 60 * 60 * 1000
+  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: express.Response){const UserEntity = await this.authService.login(dto)
+
+        res.cookie('refreshToken', UserEntity.refreshToken, {
+          httpOnly: true,
         });
-        return{
+        res.json({
           success: true,
-          message: "User success login",
-          statusCode: 201,
-          accessToken: token.accessToken,
-          refreshToken: token.refreshToken
-        }
+          accessToken: UserEntity.accessToken,
+          id: UserEntity.user.id,
+          email: UserEntity.user.email,
+        });
     }
     @Post('/refresh')
     async refresh(@Req() req: express.Request){
@@ -42,25 +45,17 @@ export class AuthController {
         const token = await this.authService.refresh(refreshToken)
         return{
           success: true,
-          message: "AccessToken success update",
-          statusCode: 201,
-          token
+          accessToken: token
         }
     }
     @Post('/logout')
     async logout(@Req() req: express.Request, @Res({ passthrough: true }) res: express.Response){
         const refreshToken = req.cookies.refreshToken
+        console.log(refreshToken)
         await this.authService.logout(refreshToken)
-        res.clearCookie(refreshToken, {
-            httpOnly:true,
-            secure: false,
-            sameSite: 'lax',
-            path: '/auth',
-        })
+        res.clearCookie('refreshToken')
         return{
             success: true,
-            message: "User success logout",
-            statusCode: 201,
         }
     }
 
