@@ -25,6 +25,6 @@ export class UserEntity {
     @Column({default: false})
     isActivated: boolean;
 
-    @Column({default: ' '})
+    @Column({default: 'null'})
     linkActivated: string
 }
