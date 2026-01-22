@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",
-    "@nestjs/common": "^11.0.1",
+    "@nestjs/common": "^11.1.12",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/mapped-types": "*",
@@ -34,6 +34,7 @@
     "cookie-parser": "^1.4.7",
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.16.0",
+    "nest": "^0.1.6",
     "nestjs": "^0.0.1",
     "nodemailer": "^7.0.12",
     "reflect-metadata": "^0.2.2",

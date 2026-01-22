@@ -5,6 +5,6 @@ export class TokenEntity {
     @PrimaryGeneratedColumn('increment')
     userid: number;
 
-    @Column({unique: true})
+    @Column({unique: true, type: 'varchar', length: 500})
     refreshToken: string;
 }

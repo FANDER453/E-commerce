@@ -13,8 +13,9 @@ export class AuthController {
     const userEntity = await this.authService.registration(dto);
     const { user, token } = userEntity;
     const accessToken = token?.accessToken;
-    console.log(user, accessToken);
-    res.cookie('accessToken', accessToken, {
+    const refreshToken = token?.refreshToken
+    console.log(user);
+    res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
     });
     res.json({
