@@ -11,22 +11,23 @@ export class ProductService {
     @InjectRepository(ProductEntity)
     private productService: Repository<ProductEntity>,
   ) {}
-  async create(dto: CreateProductDto) {
-    const { urlPicture, title, price } = dto;
-    await this.productService.save({ urlPicture, price, title });
-
+  async create(dto: CreateProductDto, apiKey: any) {
+    const decode =
+    await this.productService.save(dto);
+    return {
+      success: true,
+    };
   }
 
-  findAll() {
-    return `This action returns all shoppingCart`;
+  async update(params: any, dto: UpdateProductDto) {
+    await this.productService.update(params, dto);
+    return {
+      success: true,
+    };
   }
 
   findOne(id: number) {
     return `This action returns a #${id} shoppingCart`;
-  }
-
-  update(id: number, updateShoppingCartDto: UpdateProductDto) {
-    return `This action updates a #${id} shoppingCart`;
   }
 
   remove(id: number) {

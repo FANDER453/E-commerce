@@ -10,7 +10,7 @@ import jwt from 'jsonwebtoken'
 @Injectable()
 export class UserService {
   async getUser(token: string){
-    const decode = jwt.verify(token, process.env.ACCESS_KEY)
+    const decode = jwt.verify(token, process.env.ACCESS_KEY!)
 
     return{  decode  }
   }

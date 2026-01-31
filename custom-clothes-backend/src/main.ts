@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import {ValidationMetadata} from "class-validator/types/metadata/ValidationMetadata";
 import {ValidationPipe} from "@nestjs/common";
 import cookieParser from 'cookie-parser';
+import 'dotenv/config';
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,7 +22,7 @@ async function bootstrap() {
         transform: true
       })
   )
-
+  console.log(process.env.PORT);
   await app.listen(process.env.PORT ?? 4000);
 }
 bootstrap();
