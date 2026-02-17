@@ -3,32 +3,65 @@ import {AuthDto} from "./dto/auth.dto";
 import {LoginDto} from "./dto/login.dto";
 import bcrypt from "bcrypt";
 import {InjectRepository} from "@nestjs/typeorm";
+import { v4, v4 as uuid } from 'uuid';
 import {UserEntity} from "../models/user.entity";
 import {Repository} from "typeorm";
 import {TokenDto} from "./dto/token.dto";
 import {TokenService} from "./token.service";
+import { MailService } from './mail.service';
 
 @Injectable()
 export class AuthService {
     constructor(
     @InjectRepository(UserEntity)
     private authService: Repository<UserEntity>,
-    private readonly tokenService: TokenService ) {
+    private readonly tokenService: TokenService, private readonly mailService: MailService) {
     }
     async registration(dto: AuthDto){
-        const {name, email} = dto
-        const password = await bcrypt.hash(dto.password, 10)
-        const user = this.authService.create({name, password, email})
+        const { name, email } = dto;
+        const checkUserByEmail = await this.authService.findOneBy({
+          email,
+        });
 
-        const checkUserByEmail = await this.authService.findOneBy({email: user.email})
-
-        const checkUserByUserName = await this.authService.findOneBy({name: user.name})
-        if(checkUserByEmail || checkUserByUserName){
-            throw new ConflictException('A user with such data already exists.')
+        const checkUserByUserName = await this.authService.findOneBy({
+          name,
+        });
+        if (checkUserByEmail || checkUserByUserName) {
+          throw new ConflictException('A user with such data already exists.');
         }
 
-        return this.authService.save(user)
+        const password = await bcrypt.hash(dto.password, 10)
+        const linkActivated = v4();
+        await this.mailService.mailSend(
+          email,
+          `${process.env.URL}/auth/activation/${linkActivated}`,
+        );
+        const user = this.authService.create({name, password, email, linkActivated})
+        const userSaved = await this.authService.save(user);
+        const userDto = new TokenDto(userSaved);
+        const payload = {...userDto}
+        const token = await this.tokenService.generateToken(payload);
+        await this.tokenService.saveToken(user.id, token?.refreshToken);
+        return {user: userSaved, token: token}
     }
+
+    async activate(link){
+      const user = await this.authService.findOneBy({ linkActivated: link });
+      if(!user){
+        return{
+          success: true,
+          message: 'invalid activation link'
+        }
+      }
+      user.isActivated = true
+      user.linkActivated = 'null'
+      await this.authService.save(user)
+      return {
+        success: true
+      }
+
+    }
+
     async login(dto: LoginDto){
         const {name, password} = dto
         const user = await this.authService.findOne({
@@ -53,6 +86,7 @@ export class AuthService {
         const a = await this.tokenService.saveToken(user.id, refreshToken)
         console.log(a)
         return{
+            user,
             accessToken,
             refreshToken
         }

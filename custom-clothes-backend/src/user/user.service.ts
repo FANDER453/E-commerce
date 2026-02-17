@@ -5,10 +5,13 @@ import {Repository} from "typeorm";
 import bcrypt from 'bcrypt'
 import {AuthDto} from "../auth/dto/auth.dto";
 import {LoginDto} from "../auth/dto/login.dto";
+import jwt from 'jsonwebtoken'
 
 @Injectable()
 export class UserService {
-    constructor() {}
+  async getUser(token: string){
+    const decode = jwt.verify(token, process.env.ACCESS_KEY!)
 
-
+    return{  decode  }
+  }
 }

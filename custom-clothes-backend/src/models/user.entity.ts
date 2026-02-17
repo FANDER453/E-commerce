@@ -18,13 +18,13 @@ export class UserEntity {
     @Column({
         type: 'enum',
         enum: UserRole,
-        default: UserRole.USER
+        default: UserRole.ADMIN
     })
     role: UserRole;
 
     @Column({default: false})
     isActivated: boolean;
 
-    @Column({default: ' '})
+    @Column({default: 'null'})
     linkActivated: string
 }

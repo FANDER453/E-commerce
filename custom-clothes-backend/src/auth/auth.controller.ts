@@ -1,67 +1,84 @@
-import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import express from 'express';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
 import { LoginDto } from './dto/login.dto';
+import { AuthGuard } from '../guards/auth.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {
-  }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('registration')
-  async registration(@Body() dto: AuthDto) {
-    await this.authService.registration(dto);
-    return {
+  async registration(@Body() dto: AuthDto, @Res() res: express.Response) {
+    const userEntity = await this.authService.registration(dto);
+    const { user, token } = userEntity;
+    const accessToken = token?.accessToken;
+    const refreshToken = token?.refreshToken
+    console.log(user);
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+    });
+    res.json({
       success: true,
-      message: 'User create',
-      statusCode: 201,
-    };
+      accessToken: accessToken,
+      id: user.id,
+      email: user.email,
+    });
   }
 
+  @Get('activation/:link')
+  async activate(@Param() prams: any, @Res() res: express.Response){
+    const link = this.authService.activate(prams.link);
+    const redirectUrl:any = process.env.REDIRECT_URL;
+    res.redirect(redirectUrl);
+  }
   @Post('login')
-  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: express.Response){const token = await this.authService.login(dto)
-        res.cookie('refreshToken', token.refreshToken, {
-          httpOnly:true,
-          secure: false,
-          sameSite: 'lax',
-          path: '/auth',
-          maxAge: 7 * 24 * 60 * 60 * 1000
-        });
-        return{
-          success: true,
-          message: "User success login",
-          statusCode: 201,
-          accessToken: token.accessToken,
-          refreshToken: token.refreshToken
-        }
-    }
-    @Post('/refresh')
-    async refresh(@Req() req: express.Request){
-        const refreshToken = req.cookies.refreshToken
-        const token = await this.authService.refresh(refreshToken)
-        return{
-          success: true,
-          message: "AccessToken success update",
-          statusCode: 201,
-          token
-        }
-    }
-    @Post('/logout')
-    async logout(@Req() req: express.Request, @Res({ passthrough: true }) res: express.Response){
-        const refreshToken = req.cookies.refreshToken
-        await this.authService.logout(refreshToken)
-        res.clearCookie(refreshToken, {
-            httpOnly:true,
-            secure: false,
-            sameSite: 'lax',
-            path: '/auth',
-        })
-        return{
-            success: true,
-            message: "User success logout",
-            statusCode: 201,
-        }
-    }
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: express.Response,
+  ) {
+    const UserEntity = await this.authService.login(dto);
 
+    res.cookie('refreshToken', UserEntity.refreshToken, {
+      httpOnly: true,
+    });
+    res.json({
+      success: true,
+      accessToken: UserEntity.accessToken,
+      id: UserEntity.user.id,
+      email: UserEntity.user.email,
+    });
+  }
+  @Post('/refresh')
+  async refresh(@Req() req: express.Request) {
+    const refreshToken = req.cookies.refreshToken;
+    const token = await this.authService.refresh(refreshToken);
+    return {
+      success: true,
+      accessToken: token,
+    };
+  }
+  @Post('/logout')
+  async logout(
+    @Req() req: express.Request,
+    @Res({ passthrough: true }) res: express.Response,
+  ) {
+    const refreshToken = req.cookies.refreshToken;
+    console.log(refreshToken);
+    await this.authService.logout(refreshToken);
+    res.clearCookie('refreshToken');
+    return {
+      success: true,
+    };
+  }
 }
