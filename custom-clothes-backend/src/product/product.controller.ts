@@ -9,12 +9,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+import { CreateProductDto } from './dto/create.product.dto';
+import { UpdateProductDto } from './dto/update.product.dto';
 import { RolesGuard } from '../guards/role.guard';
 import { Role } from '../enums/role.enum';
 import { Roles } from '../decorator/role.decorator';
 import { AuthGuard } from '../guards/auth.guard';
+import { AddToCartProductDto } from './dto/addToCart.product.dto';
 
 @Controller('product')
 export class ProductController {
@@ -23,29 +24,43 @@ export class ProductController {
   @UseGuards(AuthGuard, RolesGuard)
   @Post('/create')
   @Roles(Role.ADMIN)
-  create(
+  async create(
     @Body() createShoppingCartDto: CreateProductDto,
     @Headers('Authorization') unParsedApiKey: any,
   ) {
     const apiKey = unParsedApiKey.split(' ')[1];
-    return this.shoppingCartService.create(createShoppingCartDto, apiKey);
+    return await this.shoppingCartService.create(createShoppingCartDto, apiKey);
   }
 
+  @UseGuards(AuthGuard)
+  @Post('add-to-cart')
+  async addToCart(
+    @Body() addToCartDto: AddToCartProductDto,
+    @Headers('Authorization' ) unParsedApiKey: any
+  ){
+    const apiKey = unParsedApiKey.split(' ')[1];
+    return await this.shoppingCartService.addToCart(addToCartDto, apiKey);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Post('update/:id')
-  update(
+  async update(
     @Param() params: any,
     @Body() updateShoppingCartDto: UpdateProductDto,
   ) {
-    return this.shoppingCartService.update(params.id, updateShoppingCartDto);
+    return await this.shoppingCartService.update(params.id, updateShoppingCartDto);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.shoppingCartService.findOne(+id);
+  async get(@Param('id') id: string) {
+    return await this.shoppingCartService.get(+id);
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.shoppingCartService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return await this.shoppingCartService.remove(+id);
   }
 }

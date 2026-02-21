@@ -1,19 +1,30 @@
-import { Injectable } from '@nestjs/common';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateProductDto } from './dto/create.product.dto';
+import { UpdateProductDto } from './dto/update.product.dto';
 import { Repository } from 'typeorm';
 import { ProductEntity } from '../models/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UserEntity } from '../models/user.entity';
+import { CartEntity } from '../models/cart.entity';
+import { AddToCartProductDto } from './dto/addToCart.product.dto';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(ProductEntity)
     private productService: Repository<ProductEntity>,
+    @InjectRepository(CartEntity)
+    private cartService: Repository<CartEntity>,
   ) {}
   async create(dto: CreateProductDto, apiKey: any) {
-    const decode =
-    await this.productService.save(dto);
+    const { user_id_creator, ...data } = dto;
+    console.log({ ...data }, user_id_creator);
+    const product = this.productService.create({
+      ...data,
+      userIdCreator: user_id_creator,
+    });
+    const decode = await this.productService.save(product);
     return {
       success: true,
     };
@@ -26,11 +37,74 @@ export class ProductService {
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} shoppingCart`;
+  async get(id: number) {
+    const product = await this.productService.findOneBy({
+      id,
+    });
+    return {
+      urlPicture: product?.urlPicture,
+      title: product?.title,
+      review: product?.review,
+      grade: product?.grade,
+      price: product?.price,
+    };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} shoppingCart`;
+  async remove(id: number) {
+    const product = await this.productService.findOneBy({
+      id,
+    });
+    if (!product) {
+      return {
+        success: false,
+      };
+    }
+    await this.productService.remove(product);
+    return {
+      success: true,
+    };
+  }
+
+  async addToCart(dto: AddToCartProductDto, token: string) {
+    const product = (await this.productService.findOneBy({
+      id: dto.id,
+    })) as ProductEntity;
+
+    if(!product){
+      throw new NotFoundException(`Product with ${dto.id} not found`)
+    }
+
+    const decode = jwt.verify(token, process.env.ACCESS_KEY!) as JwtPayload;
+
+    const cart = await this.cartService.findOne({
+      where: {
+        productId: { id: dto.id },
+      },
+      relations: ['userId', 'productId']
+    });
+
+    if (cart){
+      await this.cartService.update(
+        cart.id,
+        { quantity: cart.quantity + 1}
+      )
+
+      return {
+        success: true,
+      };
+    }else {
+      const productToCart = this.cartService.create({
+        quantity: dto.quantity,
+        userId: { id: decode.id },
+        productId: { id: dto.id },
+      });
+
+      await this.cartService.save(productToCart);
+
+      return{
+        success:true
+      }
+    }
+
   }
 }

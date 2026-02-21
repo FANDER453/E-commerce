@@ -4,12 +4,12 @@ import { ProductController } from './product.controller';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductEntity } from '../models/product.entity';
-import { JwtModule } from '@nestjs/jwt';
+import { CartEntity } from '../models/cart.entity';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    TypeOrmModule.forFeature([ProductEntity]),
+    TypeOrmModule.forFeature([ProductEntity, CartEntity]),
   ],
   controllers: [ProductController],
   providers: [ProductService],

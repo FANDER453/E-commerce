@@ -92,12 +92,6 @@ export class AuthService {
         }
     }
     async refresh(refreshToken: string){
-        const a = await this.tokenService.refreshAccessToken(refreshToken)
-        console.log(a)
-    }
-
-    async logout(refreshToken: string){
-        const result = await this.tokenService.update(refreshToken)
-
+        return await this.tokenService.refreshAccessToken(refreshToken)
     }
 }

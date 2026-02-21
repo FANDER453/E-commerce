@@ -2,7 +2,7 @@ import {Column, Entity, PrimaryGeneratedColumn} from "typeorm";
 
 @Entity('token')
 export class TokenEntity {
-    @PrimaryGeneratedColumn('increment')
+    @PrimaryGeneratedColumn('uuid')
     userid: number;
 
     @Column({unique: true, type: 'varchar', length: 500})

@@ -6,6 +6,7 @@ import {TypeOrmModule} from "@nestjs/typeorm";
 import { UserModule } from './user/user.module';
 import {ConfigModule} from "@nestjs/config";
 import { ProductModule } from './product/product.module';
+import { CartEntity } from './models/cart.entity';
 
 @Module({
   imports: [
@@ -18,10 +19,11 @@ import { ProductModule } from './product/product.module';
       database: process.env.DB_NAME || 'project',
       autoLoadEntities: true,
       synchronize: true,
-      dropSchema: true,
+      //dropSchema: true,
     }),
     AuthModule,
     UserModule,
+    CartEntity,
     ConfigModule.forRoot({
       envFilePath:
         'C:\\Users\\sn1f1r\\WebstormProjects\\E-commerce\\custom-clothes-backend\\.env',

@@ -3,9 +3,10 @@ import {ConfigService} from "@nestjs/config";
 import {InjectRepository} from "@nestjs/typeorm";
 import {Repository} from "typeorm";
 import {TokenEntity} from "../models/token.entity";
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { env } from '../env';
 
+@Injectable()
 export class TokenService{
     constructor(private readonly configService: ConfigService, @InjectRepository(TokenEntity)
     private tokenRepository: Repository<TokenEntity>) {
@@ -61,8 +62,9 @@ export class TokenService{
         isActivated,
         role
       }
-      // @ts-ignore
-      return jwt.sign(payload, process.env.ACCESS_KEY, { expiresIn: '30m' });
+      console.log('1231');
+      return jwt.sign(payload, process.env.ACCESS_KEY!, { expiresIn: '30m' });
+
     }
 
     async update(refreshToken: string){

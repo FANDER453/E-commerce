@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
 
 export class CreateProductDto {
   @IsNotEmpty()
@@ -11,5 +11,6 @@ export class CreateProductDto {
   price: number;
 
   @IsUUID()
+  @IsOptional()
   user_id_creator: string;
 }
