@@ -1,11 +1,12 @@
 import {
   Column,
-  Entity, JoinColumn,
+  Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import {UserRole} from "./user.role";
+import { UserRole } from './user.role';
 import { ProductEntity } from './product.entity';
 import { CartEntity } from './cart.entity';
 

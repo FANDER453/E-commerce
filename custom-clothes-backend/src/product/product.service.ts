@@ -37,16 +37,18 @@ export class ProductService {
     };
   }
 
-  async get(id: number) {
-    const product = await this.productService.findOneBy({
-      id,
-    });
+  async get() {
+    const products = await this.productService.find()
+    const product = products.map((products) => ({
+      id: products.id,
+      urlPicture: products.urlPicture,
+      title: products.title,
+      review: products.review,
+      grade: products.grade,
+      price: products.price,
+    }));
     return {
-      urlPicture: product?.urlPicture,
-      title: product?.title,
-      review: product?.review,
-      grade: product?.grade,
-      price: product?.price,
+      product
     };
   }
 

@@ -42,8 +42,8 @@ export class UserController {
     @Res({ passthrough: true }) res: express.Response,
     @Body() dto: UserUpdateNameDto,
   ) {
-    const token = (req.headers.authorization)?.split(' ')[1] as string
-    return await this.userService.update(dto, token)
+    const token = req.headers.authorization?.split(' ')[1] as string;
+    return await this.userService.update(dto, token);
   }
   @UseGuards(AuthGuard)
   @Patch('/updateProfile/changePassword')
@@ -53,12 +53,15 @@ export class UserController {
     @Body() dto: UserChangePasswordDto,
   ) {
     const token = req.headers.authorization?.split(' ')[1] as string;
-    return await this.userService.change(dto, token)
+    return await this.userService.change(dto, token);
   }
 
-  @Get('/products')
-  async getProducts(){
-
+  @UseGuards(AuthGuard)
+  @Get('/cart')
+  async getCart(@Req() req) {
+    const userId = req.user.id
+    console.log(userId)
+    return this.userService.getCart(userId)
   }
   @UseGuards(AuthGuard)
   @Post('/logout')

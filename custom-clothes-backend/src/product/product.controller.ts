@@ -52,9 +52,9 @@ export class ProductController {
     return await this.shoppingCartService.update(params.id, updateShoppingCartDto);
   }
 
-  @Get(':id')
-  async get(@Param('id') id: string) {
-    return await this.shoppingCartService.get(+id);
+  @Get()
+  async get() {
+    return await this.shoppingCartService.get();
   }
 
   @UseGuards(AuthGuard, RolesGuard)

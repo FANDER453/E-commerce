@@ -18,6 +18,8 @@ export class UserService {
     @InjectRepository(UserEntity)
     private readonly userService: Repository<UserEntity>,
     private readonly tokenService: TokenService,
+    @InjectRepository(CartEntity)
+    private cartService: Repository<CartEntity>
   ) {}
   async getUser(token: string) {
     const decode = jwt.verify(token, process.env.ACCESS_KEY!) as JwtPayload;
@@ -91,7 +93,12 @@ export class UserService {
       };
     }
   }
-
+  async getCart(userId: string) {
+    return await this.cartService.find({
+      where: {userId: {id: userId}},
+      relations: ['productId']
+    })
+  }
   async logout(refreshToken: string) {
     await this.tokenService.update(refreshToken);
     return {
