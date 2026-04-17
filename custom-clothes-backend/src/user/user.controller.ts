@@ -58,7 +58,7 @@ export class UserController {
 
   @UseGuards(AuthGuard)
   @Get('/cart')
-  async getCart(@Req() req) {
+  async getCart(@Req() req: any) {
     const userId = req.user.id
     console.log(userId)
     return this.userService.getCart(userId)

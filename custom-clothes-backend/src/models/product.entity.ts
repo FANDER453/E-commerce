@@ -5,7 +5,7 @@ import { CartEntity } from './cart.entity';
 @Entity('product')
 export class ProductEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: string;
 
   @Column({ nullable: true })
   urlPicture: string;
@@ -31,4 +31,5 @@ export class ProductEntity {
 
   @OneToMany(() => CartEntity, (cart) => cart.productId)
   carts: CartEntity[];
+  
 }

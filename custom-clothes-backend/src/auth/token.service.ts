@@ -18,7 +18,7 @@ export class TokenService{
               expiresIn: '30m',
             });
             // @ts-ignore
-          const refreshToken = jwt.sign(payload, process.env.ACCESS_KEY, {
+          const refreshToken = jwt.sign(payload, process.env.REFRESH_KEY, {
               expiresIn: '30d',
             });
             return{
@@ -54,7 +54,7 @@ export class TokenService{
 
     async refreshAccessToken (refreshToken){
       // @ts-ignore
-      const decode = jwt.verify(refreshToken, process.env.ACCESS_KEY,)
+      const decode = jwt.verify(refreshToken, process.env.REFRESH_KEY,)
       const {id, email, isActivated, role} = decode
       const payload = {
         id,

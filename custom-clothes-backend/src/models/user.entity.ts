@@ -9,6 +9,7 @@ import {
 import { UserRole } from './user.role';
 import { ProductEntity } from './product.entity';
 import { CartEntity } from './cart.entity';
+import { OrderEntity } from './order.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -42,4 +43,7 @@ export class UserEntity {
 
   @OneToMany(() => CartEntity, (cart) => cart.userId)
   carts: CartEntity[];
+
+  @OneToMany(() => OrderEntity, (order) => order.userId)
+  orders: OrderEntity[]
 }

@@ -7,6 +7,7 @@ import { UserModule } from './user/user.module';
 import {ConfigModule} from "@nestjs/config";
 import { ProductModule } from './product/product.module';
 import { CartEntity } from './models/cart.entity';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { CartEntity } from './models/cart.entity';
       database: process.env.DB_NAME || 'project',
       autoLoadEntities: true,
       synchronize: true,
-      //dropSchema: true,
+      dropSchema: true,
     }),
     AuthModule,
     UserModule,
@@ -29,6 +30,7 @@ import { CartEntity } from './models/cart.entity';
         'C:\\Users\\sn1f1r\\WebstormProjects\\E-commerce\\custom-clothes-backend\\.env',
     }),
     ProductModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],

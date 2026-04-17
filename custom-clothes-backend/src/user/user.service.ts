@@ -25,7 +25,6 @@ export class UserService {
     const decode = jwt.verify(token, process.env.ACCESS_KEY!) as JwtPayload;
     return { decode };
   }
-
   async change(dto: UserChangePasswordDto, token: string) {
     const { oldPassword, newPassword, confirmNewPassword } = dto;
     const decode = jwt.verify(token, process.env.ACCESS_KEY!) as JwtPayload;

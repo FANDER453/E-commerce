@@ -42,6 +42,7 @@ export class AuthService {
         const payload = {...userDto}
         const token = await this.tokenService.generateToken(payload);
         await this.tokenService.saveToken(user.id, token?.refreshToken);
+        console.log(user)
         return {user: userSaved, token: token}
     }
 

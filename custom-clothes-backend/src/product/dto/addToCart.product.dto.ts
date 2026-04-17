@@ -3,7 +3,7 @@ import { IsNotEmpty, IsUUID } from 'class-validator';
 export class AddToCartProductDto{
   @IsNotEmpty()
   @IsUUID()
-  id: number
+  id: string
 
   @IsNotEmpty()
   quantity: number

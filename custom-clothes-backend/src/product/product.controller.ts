@@ -61,6 +61,6 @@ export class ProductController {
   @Roles(Role.ADMIN)
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return await this.shoppingCartService.remove(+id);
+    return await this.shoppingCartService.remove(id);
   }
 }

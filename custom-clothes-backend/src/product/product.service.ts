@@ -52,7 +52,7 @@ export class ProductService {
     };
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     const product = await this.productService.findOneBy({
       id,
     });
@@ -68,9 +68,9 @@ export class ProductService {
   }
 
   async addToCart(dto: AddToCartProductDto, token: string) {
-    const product = (await this.productService.findOneBy({
+    const product = await this.productService.findOneBy({
       id: dto.id,
-    })) as ProductEntity;
+    })
 
     if(!product){
       throw new NotFoundException(`Product with ${dto.id} not found`)
@@ -83,19 +83,19 @@ export class ProductService {
         productId: { id: dto.id },
       },
       relations: ['userId', 'productId']
-    });
+    })
 
     if (cart){
       await this.cartService.update(
         cart.id,
-        { quantity: cart.quantity + 1}
+        { quantity: cart.quantity + dto.quantity }
       )
 
       return {
         success: true,
       };
     }else {
-      const productToCart = this.cartService.create({
+      const productToCart = await this.cartService.create({
         quantity: dto.quantity,
         userId: { id: decode.id },
         productId: { id: dto.id },

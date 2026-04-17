@@ -24,7 +24,6 @@ export class AuthController {
     const { user, token } = userEntity;
     const accessToken = token?.accessToken;
     const refreshToken = token?.refreshToken
-    console.log(user);
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
     });
