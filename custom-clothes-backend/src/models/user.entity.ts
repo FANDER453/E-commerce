@@ -41,7 +41,7 @@ export class UserEntity {
   @OneToMany(() => ProductEntity, (product) => product.userId)
   products: ProductEntity[];
 
-  @OneToMany(() => CartEntity, (cart) => cart.userId)
+  @OneToMany(() => CartEntity, (cart) => cart.user)
   carts: CartEntity[];
 
   @OneToMany(() => OrderEntity, (order) => order.userId)

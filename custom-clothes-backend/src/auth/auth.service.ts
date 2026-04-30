@@ -9,14 +9,18 @@ import {Repository} from "typeorm";
 import {TokenDto} from "./dto/token.dto";
 import {TokenService} from "./token.service";
 import { MailService } from './mail.service';
+import {CartEntity} from "../models/cart.entity";
 
 @Injectable()
 export class AuthService {
     constructor(
-    @InjectRepository(UserEntity)
-    private authService: Repository<UserEntity>,
-    private readonly tokenService: TokenService, private readonly mailService: MailService) {
-    }
+        @InjectRepository(UserEntity)
+        private authService: Repository<UserEntity>,
+        private readonly tokenService: TokenService,
+        private readonly mailService: MailService,
+        @InjectRepository(CartEntity)
+        private cartService: Repository<CartEntity>
+    ) {}
     async registration(dto: AuthDto){
         const { name, email } = dto;
         const checkUserByEmail = await this.authService.findOneBy({
@@ -42,6 +46,8 @@ export class AuthService {
         const payload = {...userDto}
         const token = await this.tokenService.generateToken(payload);
         await this.tokenService.saveToken(user.id, token?.refreshToken);
+        const cart = await this.cartService.create({user: {id: user.id}})
+        await this.cartService.save(cart)
         console.log(user)
         return {user: userSaved, token: token}
     }

@@ -5,15 +5,18 @@ import { Repository } from 'typeorm';
 import { ProductEntity } from '../models/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../models/user.entity';
-import { CartEntity } from '../models/cart.entity';
+import { CartEntity, CartItem } from '../models/cart.entity';
 import { AddToCartProductDto } from './dto/addToCart.product.dto';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import {OrderEntity} from "../models/order.entity";
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(ProductEntity)
     private productService: Repository<ProductEntity>,
+    @InjectRepository(CartItem)
+    private cartItem: Repository<CartItem>,
     @InjectRepository(CartEntity)
     private cartService: Repository<CartEntity>,
   ) {}
@@ -38,7 +41,7 @@ export class ProductService {
   }
 
   async get() {
-    const products = await this.productService.find()
+    const products = await this.productService.find();
     const product = products.map((products) => ({
       id: products.id,
       urlPicture: products.urlPicture,
@@ -48,7 +51,7 @@ export class ProductService {
       price: products.price,
     }));
     return {
-      product
+      product,
     };
   }
 
@@ -70,43 +73,29 @@ export class ProductService {
   async addToCart(dto: AddToCartProductDto, token: string) {
     const product = await this.productService.findOneBy({
       id: dto.id,
-    })
+    });
 
-    if(!product){
-      throw new NotFoundException(`Product with ${dto.id} not found`)
+    if (!product) {
+      throw new NotFoundException(`Product with ${dto.id} not found`);
     }
 
     const decode = jwt.verify(token, process.env.ACCESS_KEY!) as JwtPayload;
+    const cart = (await this.cartService.findOne({
+      where: { user: { id: decode.id } },
+      relations: ['items', 'items.product'],
+    })) as CartEntity;
 
-    const cart = await this.cartService.findOne({
-      where: {
-        productId: { id: dto.id },
-      },
-      relations: ['userId', 'productId']
-    })
-
-    if (cart){
-      await this.cartService.update(
-        cart.id,
-        { quantity: cart.quantity + dto.quantity }
-      )
-
-      return {
-        success: true,
-      };
-    }else {
-      const productToCart = await this.cartService.create({
-        quantity: dto.quantity,
-        userId: { id: decode.id },
-        productId: { id: dto.id },
-      });
-
-      await this.cartService.save(productToCart);
-
-      return{
-        success:true
-      }
+    const item = cart.items.find(item => item.productId === product.id)
+    if(item){
+        item.quantity += dto.quantity
+        return await this.cartItem.save(item)
+    }else{
+        const newItem = await this.cartItem.save(this.cartItem.create({
+            productId: product.id,
+            quantity: dto.quantity,
+            cartId: cart.id
+        }))
+        return newItem
     }
-
   }
 }

@@ -1,6 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from './user.entity';
-import { CartEntity } from './cart.entity';
+import { CartEntity, CartItem } from './cart.entity';
+import {OrderItem} from "./order.entity";
 
 @Entity('product')
 export class ProductEntity {
@@ -25,11 +26,13 @@ export class ProductEntity {
   @Column({ name: 'user_id_creator', type: 'uuid', nullable: true })
   userIdCreator: string;
 
-  @ManyToOne(() => UserEntity, (user) => user.products, {nullable: true})
+  @ManyToOne(() => UserEntity, (user) => user.products, { nullable: true })
   @JoinColumn({ name: 'user_id_creator' })
   userId: UserEntity;
 
-  @OneToMany(() => CartEntity, (cart) => cart.productId)
-  carts: CartEntity[];
-  
+  @OneToMany(() => CartItem, (item) => item.product)
+  cart: CartEntity[];
+
+  @OneToMany(() => OrderItem, (item) => item.product)
+  order: OrderItem[];
 }

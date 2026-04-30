@@ -22,13 +22,7 @@ export class OrderService {
     async order(decodeApiKey){
         console.log(decodeApiKey)
         const user = await this.authService.findOneBy({id: decodeApiKey.id})
-        const cart = await this.cartService.findOne({
-            where:{
-                userId: {id: user?.id}
-            },
-            relations: ['userId', 'productId']
-        })
-        console.log(cart)
+
         
     }        
 }

@@ -94,8 +94,8 @@ export class UserService {
   }
   async getCart(userId: string) {
     return await this.cartService.find({
-      where: {userId: {id: userId}},
-      relations: ['productId']
+      where: {user: {id: userId}},
+      relations: ['items']
     })
   }
   async logout(refreshToken: string) {

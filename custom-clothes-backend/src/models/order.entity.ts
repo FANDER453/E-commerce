@@ -16,13 +16,44 @@ export class OrderEntity{
     status: OrderStatus
 
     @Column()
-    order_price: number
+    orderPrice: number
 
-    @ManyToOne(() => UserEntity, (userid) => userid.orders)
+    @Column()
+    userId: string
+
+    @ManyToOne(() => UserEntity, (user) => user.orders)
     @JoinColumn({name: 'userId'})
-    userId: UserEntity
+    user: UserEntity
 
-    @OneToOne(() => CartEntity)
-    @JoinColumn({name: 'cartId'})
-    cartId: CartEntity
+    @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
+    items: OrderItem[]
+
+}
+@Entity('orderItem')
+export class OrderItem{
+    @PrimaryGeneratedColumn('uuid')
+    id: string
+
+    @Column()
+    quantity: number
+
+    @Column()
+    title: string
+
+    @Column()
+    price: number
+
+    @Column()
+    productId: string
+
+    @ManyToOne(() => ProductEntity, (item) => item.order)
+    @JoinColumn({name: 'productId'})
+    product: ProductEntity
+
+    @Column()
+    orderId: string
+
+    @ManyToOne(() => OrderEntity, (item) => item.items)
+    @JoinColumn({name: 'orderId'})
+    order: OrderEntity
 }

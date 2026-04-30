@@ -8,6 +8,7 @@ import {TokenService} from "./token.service";
 import {TokenEntity} from "../models/token.entity";
 import { MailService } from './mail.service';
 import { AuthGuard } from '../guards/auth.guard';
+import {CartEntity} from "../models/cart.entity";
 
 @Global()
 @Module({
@@ -15,6 +16,7 @@ import { AuthGuard } from '../guards/auth.guard';
     TypeOrmModule.forFeature([
       UserEntity,
       TokenEntity,
+      CartEntity
     ]),
     ConfigModule.forRoot(),
   ],
