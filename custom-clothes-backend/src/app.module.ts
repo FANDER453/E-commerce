@@ -8,9 +8,14 @@ import {ConfigModule} from "@nestjs/config";
 import { ProductModule } from './product/product.module';
 import { CartEntity } from './models/cart.entity';
 import { OrderModule } from './order/order.module';
+import { TelegramModule } from './telegram/telegram.module';
+import {TelegrafModule} from "nestjs-telegraf";
 
 @Module({
   imports: [
+    TelegrafModule.forRoot({
+      token: '8765587777:AAF0HhQQWm-6JHMsIU4UEDqrKzSK20XFGiw',
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,
@@ -31,6 +36,7 @@ import { OrderModule } from './order/order.module';
     }),
     ProductModule,
     OrderModule,
+    TelegramModule,
   ],
   controllers: [AppController],
   providers: [AppService],
