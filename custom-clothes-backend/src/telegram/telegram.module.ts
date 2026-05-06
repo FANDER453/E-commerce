@@ -1,8 +1,13 @@
 import { Module } from '@nestjs/common';
-import {TelegramUpdate} from "./telegram.update";
-import {TelegrafModule} from "nestjs-telegraf";
+import { TelegramService, TelegramUpdate } from './telegram.update';
+import {TypeOrmModule} from "@nestjs/typeorm";
+import {UserEntity} from "../models/user.entity";
+import {ConfigModule} from "@nestjs/config";
+import {TelegramController} from "./telegram.controller";
 
 @Module({
-  providers: [TelegramUpdate],
+  imports: [TypeOrmModule.forFeature([UserEntity]), ConfigModule.forRoot()],
+  providers: [TelegramUpdate, TelegramService],
+  controllers: [TelegramController],
 })
 export class TelegramModule {}
