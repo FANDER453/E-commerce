@@ -13,37 +13,46 @@ import { OrderEntity } from './order.entity';
 
 @Entity('users')
 export class UserEntity {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ unique: true })
-  name: string;
+    @Column({default: null})
+    telegramId: number
 
-  @Column()
-  password: string;
+    @Column({default: null})
+    telegramLinkToken: string
 
-  @Column({ unique: true })
-  email: string;
+    @Column({default: null})
+    telegramLinked: boolean
 
-  @Column({
-    type: 'enum',
-    enum: UserRole,
-    default: UserRole.ADMIN,
-  })
-  role: UserRole;
+    @Column({ unique: true })
+    name: string;
 
-  @Column({ default: false })
-  isActivated: boolean;
+    @Column()
+    password: string;
 
-  @Column({ default: 'null' })
-  linkActivated: string;
+    @Column({ unique: true })
+    email: string;
 
-  @OneToMany(() => ProductEntity, (product) => product.userId)
-  products: ProductEntity[];
+    @Column({
+        type: 'enum',
+        enum: UserRole,
+        default: UserRole.ADMIN,
+    })
+    role: UserRole;
 
-  @OneToMany(() => CartEntity, (cart) => cart.user)
-  carts: CartEntity[];
+    @Column({ default: false })
+    isActivated: boolean;
 
-  @OneToMany(() => OrderEntity, (order) => order.userId)
-  orders: OrderEntity[]
+    @Column({ default: 'null' })
+    linkActivated: string;
+
+    @OneToMany(() => ProductEntity, (product) => product.userId)
+    products: ProductEntity[];
+
+    @OneToMany(() => CartEntity, (cart) => cart.user)
+    carts: CartEntity[];
+
+    @OneToMany(() => OrderEntity, (order) => order.userId)
+    orders: OrderEntity[]
 }

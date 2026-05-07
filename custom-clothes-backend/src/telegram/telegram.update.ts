@@ -4,7 +4,8 @@ import {Repository} from "typeorm";
 import {UserEntity} from "../models/user.entity";
 import {InjectRepository} from "@nestjs/typeorm";
 import {Injectable} from "@nestjs/common";
-import jwt from 'jsonwebtoken'
+import jwt, {JwtPayload} from 'jsonwebtoken'
+import uuid from 'uuid'
 
 @Update()
 export class TelegramUpdate{
@@ -17,7 +18,17 @@ export class TelegramUpdate{
         await ctx.reply('hi')
         // @ts-ignore
         const startMessage = (ctx.message.text).split(' ')[1]
-        console.log(startMessage)
+        const user = await this.userService.findOne({
+            where:{
+                telegramLinkToken: startMessage
+            }
+        }) as UserEntity
+        user.telegramLinkToken = 'null'
+        if (ctx.from?.id != null) {
+            user.telegramId = ctx.from?.id
+        }
+        user.telegramLinked = true
+        console.log(user)
     }
 
     @On('message')
@@ -34,7 +45,17 @@ export class TelegramService {
     ) {}
     async getTelegramKey(unParsApiKey) {
         const apiKey = unParsApiKey.split(' ')[1]
-        const user = jwt.verify(apiKey, process.env.ACCESS_KEY!);
+        const userApi = jwt.verify(apiKey, process.env.ACCESS_KEY!) as JwtPayload
+        const token = uuid.v4()
+        const user =  await this.userService.findOne({
+            where:{
+                id: userApi.id
+            }
+        }) as UserEntity
+        user.telegramLinkToken = token
         console.log(user)
+        await this.userService.save(user)
+        return {"token": `https://t.me/shizo_shop_bot?start=${token}`}
+
     }
 }
