@@ -16,10 +16,10 @@ export class UserEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({default: null})
-    telegramId: number
+    @Column({default: null, type: "bigint"})
+    telegramId: bigint
 
-    @Column({default: null})
+    @Column({default: null, nullable: true})
     telegramLinkToken: string
 
     @Column({default: null})
@@ -53,6 +53,6 @@ export class UserEntity {
     @OneToMany(() => CartEntity, (cart) => cart.user)
     carts: CartEntity[];
 
-    @OneToMany(() => OrderEntity, (order) => order.userId)
+    @OneToMany(() => OrderEntity, (order) => order.user)
     orders: OrderEntity[]
 }

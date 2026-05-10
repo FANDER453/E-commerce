@@ -6,7 +6,7 @@ import {TelegramService} from "./telegram.update";
 export class TelegramController{
     constructor(private readonly tgService: TelegramService) {}
     @UseGuards(AuthGuard)
-    @Get('/id')
+    @Get('/connect')
     async getTelegramId(@Headers('Authorization') apikey: any){
         return await this.tgService.getTelegramKey(apikey)
     }

@@ -27,11 +27,14 @@ export class UserController {
   @Get('/profile')
   async getProfile(@Headers('Authorization') apiKey: string) {
     const token = apiKey?.split(' ')[1];
-    const user = (await this.userService.getUser(token)) as JwtPayload;
+    const user = await this.userService.getUser(token)
+    //console.log(user)
     return {
-      name: user.decode.name,
-      email: user.decode.email,
-      isActivated: user.decode.isActivated,
+        name: user?.name,
+        email: user?.email,
+        isActivated: user?.isActivated,
+        cart: user?.carts,
+        order: user?.orders
     };
   }
 

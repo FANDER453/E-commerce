@@ -10,11 +10,13 @@ import { CartEntity } from './models/cart.entity';
 import { OrderModule } from './order/order.module';
 import { TelegramModule } from './telegram/telegram.module';
 import {TelegrafModule} from "nestjs-telegraf";
+import {HttpsProxyAgent} from "https-proxy-agent";
 
 @Module({
   imports: [
     TelegrafModule.forRoot({
-      token: '8765587777:AAF0HhQQWm-6JHMsIU4UEDqrKzSK20XFGiw',
+        token: '8765587777:AAF0HhQQWm-6JHMsIU4UEDqrKzSK20XFGiw',
+
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
@@ -24,8 +26,8 @@ import {TelegrafModule} from "nestjs-telegraf";
       password: process.env.DB_PASSWORD || '1111',
       database: process.env.DB_NAME || 'project',
       autoLoadEntities: true,
-      synchronize: true,
-      dropSchema: true,
+      //synchronize: true,
+      //dropSchema: true,
     }),
     AuthModule,
     UserModule,

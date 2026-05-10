@@ -23,7 +23,13 @@ export class UserService {
   ) {}
   async getUser(token: string) {
     const decode = jwt.verify(token, process.env.ACCESS_KEY!) as JwtPayload;
-    return { decode };
+    const user = await this.userService.findOne({
+        where:{
+            id: decode.id
+        },
+        relations: ['carts', 'orders', "carts.items"]
+    })
+    return user
   }
   async change(dto: UserChangePasswordDto, token: string) {
     const { oldPassword, newPassword, confirmNewPassword } = dto;
