@@ -10,6 +10,18 @@ export class CreateProductDto {
   @IsNotEmpty()
   price: number;
 
+  @IsNotEmpty()
+  description: string;
+
+  @IsNotEmpty()
+  material: string;
+
+  @IsNotEmpty()
+  dimensions: string;
+
+  @IsNotEmpty()
+  inStock: number;
+
   @IsUUID()
   @IsOptional()
   user_id_creator: string;

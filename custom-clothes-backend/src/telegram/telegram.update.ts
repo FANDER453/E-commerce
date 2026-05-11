@@ -21,6 +21,29 @@ export class TelegramUpdate{
         private productService: Repository<ProductEntity>
 
     ) {}
+    private async mainMenu(@Ctx() ctx: Context){
+        await ctx.reply('👋 *Добро пожаловать в Телеграм бота ShizoShop!*\n\nИспользуйте меню ниже для навигации по разделам:',
+            {
+                parse_mode: 'Markdown',
+                ...Markup.inlineKeyboard([
+                    [Markup.button.callback('👕 Товары', 'products')],
+                    [
+                        Markup.button.callback('👤 Профиль', 'profile'),
+                        Markup.button.callback('🛒 Корзина', 'cart')
+                    ],
+                    [
+                        Markup.button.callback('📦 Заказы', 'order'),
+                        Markup.button.callback('🆘 Поддержка', 'support')
+                    ],
+                    [
+                        Markup.button.url('📺 Канал Shizo', 'https://t.me/customandshizo'),
+                        Markup.button.callback('ℹ️ О нас', 'aboutUs')
+                    ]
+                ])
+            }
+        )
+    }
+
     @Start()
     async start(@Ctx() ctx: Context){
 
@@ -39,11 +62,11 @@ export class TelegramUpdate{
             }
             user.telegramLinked = true
             await this.userService.save(user)
-            await ctx.reply('✅ Аккаунт успешно привязан!\\n\\nТеперь вам доступны все функции магазина прямо здесь, в Telegram.\n\nИспользуйте меню ниже для навигации по разделам:',
+            await ctx.reply('✅ Аккаунт успешно привязан!\n\nТеперь вам доступны все функции магазина прямо здесь, в Telegram.\n\nИспользуйте меню ниже для навигации по разделам:',
                 {
                     parse_mode: 'Markdown',
                     ...Markup.inlineKeyboard([
-                        [Markup.button.callback('👕 Товары', 'product')],
+                        [Markup.button.callback('👕 Товары', 'products')],
                         [
                             Markup.button.callback('👤 Профиль', 'profile'),
                             Markup.button.callback('🛒 Корзина', 'cart')
@@ -68,40 +91,44 @@ export class TelegramUpdate{
                     telegramId: BigInt(ctx.from?.id)
                 }
             })
-            console.log(user)
             if(user === null){
                 //await ctx.replyWithPhoto({source: 'C:\\Users\\sn1f1r\\Pictures\\Annotation 2026-03-02 200447.png'}, {caption: 'Registration on official site'})
 
-                await ctx.reply('У вас не привязан Телеграм', Markup.inlineKeyboard([
+                await ctx.reply('🛍 Для доступа ко всем функциям магазина привяжите Telegram к аккаунту на сайте.', Markup.inlineKeyboard([
                     [
-                        Markup.button.url('Привязать', `${process.env.APP_URL}/telegram/connect`),
-                        Markup.button.callback('Поддержка', 'support'),
+                        Markup.button.url('🔗 Привязать', `${process.env.APP_URL}/telegram/connect`),
+                        Markup.button.callback('🆘 Поддержка', 'support'),
                     ]
                 ]))
             }else{
-                await ctx.reply('👋 *Добро пожаловать в Телеграм бота ShizoShop!*\n\nИспользуйте меню ниже для навигации по разделам:',
-                    {
-                        parse_mode: 'Markdown',
-                        ...Markup.inlineKeyboard([
-                            [Markup.button.callback('👕 Товары', 'product')],
-                            [
-                                Markup.button.callback('👤 Профиль', 'profile'),
-                                Markup.button.callback('🛒 Корзина', 'cart')
-                            ],
-                            [
-                                Markup.button.callback('📦 Заказы', 'order'),
-                                Markup.button.callback('🆘 Поддержка', 'support')
-                            ],
-                            [
-                                Markup.button.url('📺 Канал Shizo', 'https://t.me/customandshizo'),
-                                Markup.button.callback('ℹ️ О нас', 'aboutUs')
-                            ]
-                        ])
-                    }
-                )
+                await this.mainMenu(ctx)
             }
         }
 
+    }
+    @Action('products')
+    async products(@Ctx() ctx: Context){
+        const product = await this.productService.find()
+        product.map((product) => {
+            ctx.replyWithPhoto({url: product.urlPicture}, {
+                caption: `🏷 Название: ${product.title}\n 💸 Стоимость: ${product.price} ₽ \n 📝 Описание: ${product.description} \n 🧵 Материал: ${product.material} \n 📏 Размеры: ${product.dimensions} \n 📦 В наличии: ${product.inStock}`,
+                parse_mode: "Markdown",
+                ...Markup.inlineKeyboard([
+                    [Markup.button.url('⭐ Отзывы', 'https://t.me')],
+                    [Markup.button.callback('🛒 Добавить в корзину', `addToCart_${product.id}`)]
+                ])
+            })
+        })
+    }
+    @Action(/^addToCart_(\d+)$/)
+    async addToCart(@Ctx() ctx: Context){
+
+        const user = await this.userService.findOne({
+            where:{
+                telegramId: BigInt(ctx.from!.id)
+            }
+        })
+        console.log('123')
     }
     @Action('profile')
     async profile(@Ctx() ctx: Context){

@@ -5,33 +5,45 @@ import {OrderItem} from "./order.entity";
 
 @Entity('product')
 export class ProductEntity {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ nullable: true })
-  urlPicture: string;
+    @Column({ nullable: false })
+    urlPicture: string;
 
-  @Column({ nullable: true })
-  title: string;
+    @Column({ nullable: false })
+    title: string;
 
-  @Column({ nullable: true })
-  review: number;
+    @Column({ nullable: true })
+    review: number;
 
-  @Column({ nullable: true })
-  grade: number;
+    @Column({ nullable: true })
+    grade: number;
 
-  @Column({ nullable: true })
-  price: number;
+    @Column({ nullable: false })
+    price: number;
 
-  @Column({ name: 'user_id_creator', type: 'uuid', nullable: true })
-  userIdCreator: string;
+    @Column({nullable: false})
+    description: string //описание
 
-  @ManyToOne(() => UserEntity, (user) => user.products, { nullable: true })
-  @JoinColumn({ name: 'user_id_creator' })
-  userId: UserEntity;
+    @Column({nullable: false})
+    material: string
 
-  @OneToMany(() => CartItem, (item) => item.product)
-  cart: CartEntity[];
+    @Column({nullable: false})
+    dimensions: string //размер
+
+    @Column({nullable: false})
+    inStock: number
+
+    @Column({ name: 'user_id_creator', type: 'uuid', nullable: true })
+    userIdCreator: string;
+
+    @ManyToOne(() => UserEntity, (user) => user.products, { nullable: true })
+    @JoinColumn({ name: 'user_id_creator' })
+    userId: UserEntity;
+
+    @OneToMany(() => CartItem, (item) => item.product)
+    cart: CartEntity[];
 
   @OneToMany(() => OrderItem, (item) => item.product)
   order: OrderItem[];
