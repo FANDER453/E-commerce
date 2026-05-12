@@ -206,13 +206,8 @@ export class TelegramUpdate{
                     {
                         reply_markup:{
                             inline_keyboard:[
-                                [
-                                    Markup.button.callback('−', `qty:decrease:${productId}`),
-                                    Markup.button.callback(`${quantity} шт.`, 'noop'),
-                                    Markup.button.callback('+', `qty:increase:${productId}`),
-                                ],
-                                [Markup.button.url('⭐ Отзывы', 'https://t.me')],
-                                [Markup.button.callback('🛒 Добавить в корзину', `addToCart:${productId}:qty:${++quantity-1}`)],
+                                [Markup.button.callback('⬅️ Назад', 'back_to_menu')],
+
                             ]
                         }
 
@@ -230,7 +225,13 @@ export class TelegramUpdate{
                     {
                         reply_markup:{
                             inline_keyboard:[
-                                [Markup.button.callback('⬅️ Назад', 'back_to_menu')]
+                                [
+                                    Markup.button.callback('−', `qty:decrease:${productId}`),
+                                    Markup.button.callback(`${quantity} шт.`, 'noop'),
+                                    Markup.button.callback('+', `qty:increase:${productId}`),
+                                ],
+                                [Markup.button.url('⭐ Отзывы', 'https://t.me')],
+                                [Markup.button.callback('🛒 Добавить в корзину', `addToCart:${productId}:qty:${++quantity-1}`)],
                             ]
                         }
 
