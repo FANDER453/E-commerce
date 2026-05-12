@@ -11,6 +11,7 @@ import { OrderModule } from './order/order.module';
 import { TelegramModule } from './telegram/telegram.module';
 import {TelegrafModule} from "nestjs-telegraf";
 import {HttpsProxyAgent} from "https-proxy-agent";
+import * as path from 'path';
 
 @Module({
   imports: [
@@ -26,15 +27,15 @@ import {HttpsProxyAgent} from "https-proxy-agent";
       password: process.env.DB_PASSWORD || '1111',
       database: process.env.DB_NAME || 'project',
       autoLoadEntities: true,
-      //synchronize: true,
-      //dropSchema: true,
+      synchronize: true,
+      dropSchema: true,
     }),
     AuthModule,
     UserModule,
     CartEntity,
     ConfigModule.forRoot({
-      envFilePath:
-        'C:\\Users\\sn1f1r\\WebstormProjects\\E-commerce\\custom-clothes-backend\\.env',
+      envFilePath: path.join(process.cwd(), '.env'),
+      isGlobal: true
     }),
     ProductModule,
     OrderModule,
