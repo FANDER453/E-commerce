@@ -3,11 +3,11 @@ import {Context, Markup} from "telegraf";
 import {Repository} from "typeorm";
 import {UserEntity} from "../models/user.entity";
 import {InjectRepository} from "@nestjs/typeorm";
-import {Injectable} from "@nestjs/common";
+import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import jwt, {JwtPayload} from 'jsonwebtoken'
 import uuid from 'uuid'
 import {type} from "node:os";
-import {CartEntity} from "../models/cart.entity";
+import {CartEntity, CartItem} from "../models/cart.entity";
 import {ProductEntity} from "../models/product.entity";
 
 @Update()
@@ -18,7 +18,9 @@ export class TelegramUpdate{
         @InjectRepository(CartEntity)
         private cartService: Repository<CartEntity>,
         @InjectRepository(ProductEntity)
-        private productService: Repository<ProductEntity>
+        private productService: Repository<ProductEntity>,
+        @InjectRepository(CartItem)
+        private cartItem: Repository<CartItem>
 
     ) {}
     private async mainMenu(@Ctx() ctx: Context){
@@ -109,26 +111,145 @@ export class TelegramUpdate{
     @Action('products')
     async products(@Ctx() ctx: Context){
         const product = await this.productService.find()
-        product.map((product) => {
-            ctx.replyWithPhoto({url: product.urlPicture}, {
+        product.map(async (product) => {
+            await ctx.replyWithPhoto({url: product.urlPicture}, {
                 caption: `🏷 Название: ${product.title}\n 💸 Стоимость: ${product.price} ₽ \n 📝 Описание: ${product.description} \n 🧵 Материал: ${product.material} \n 📏 Размеры: ${product.dimensions} \n 📦 В наличии: ${product.inStock}`,
                 parse_mode: "Markdown",
                 ...Markup.inlineKeyboard([
+                    [
+                        Markup.button.callback('-', `qty:decrease:${product.id}`),
+                        Markup.button.callback(`${1} шт`, 'current'),
+                        Markup.button.callback('+', `qty:increase:${product.id}`),
+                    ],
                     [Markup.button.url('⭐ Отзывы', 'https://t.me')],
-                    [Markup.button.callback('🛒 Добавить в корзину', `addToCart_${product.id}`)]
+                    [Markup.button.callback('🛒 Добавить в корзину', `addToCart:${product.id}:qty:${1}`)]
                 ])
             })
         })
     }
-    @Action(/^addToCart_(\d+)$/)
-    async addToCart(@Ctx() ctx: Context){
+    @Action(/^qty:increase:(.+)$/)
+    async increase(@Ctx() ctx: Context){
+        const qty = (ctx as any).session['qty'] = ((ctx as any).session['qty'] || 1) + 1
+        const productId = (ctx as any).match[1]
+        await ctx.editMessageReplyMarkup(
+            Markup.inlineKeyboard([
+                [
+                    Markup.button.callback('−', `qty:decrease:${productId}`),
+                    Markup.button.callback(`${qty} шт.`, 'qty:current'),
+                    Markup.button.callback('+', `qty:increase:${productId}`),
+                ],
+                [Markup.button.url('⭐ Отзывы', 'https://t.me')],
+                [Markup.button.callback('🛒 Добавить в корзину', `addToCart:${productId}:qty:${qty}`)],
+            ]).reply_markup
+        );
+        await ctx.answerCbQuery();
 
+    }
+    @Action(/^qty:decrease:(.+)$/)
+    async decrease(@Ctx() ctx: Context){
+        const qty = (ctx as any).session['qty'] = ((ctx as any).session['qty'] || 1) - 1
+        const productId = (ctx as any).match[1]
+        if(qty <= 0){
+            await ctx.editMessageReplyMarkup(
+                Markup.inlineKeyboard([
+                    [
+                        Markup.button.callback('−', `qty:decrease:${productId}`),
+                        Markup.button.callback(`${1} шт.`, 'qty:current'),
+                        Markup.button.callback('+', `qty:increase:${productId}`),
+                    ],
+                    [Markup.button.url('⭐ Отзывы', 'https://t.me')],
+                    [Markup.button.callback('🛒 Добавить в корзину', `addToCart:${productId}:qty:${qty}`)],
+                ]).reply_markup
+            );
+            await ctx.answerCbQuery();
+        }else {
+            await ctx.editMessageReplyMarkup(
+                Markup.inlineKeyboard([
+                    [
+                        Markup.button.callback('−', `qty:decrease:${productId}`),
+                        Markup.button.callback(`${qty} шт.`, 'qty:current'),
+                        Markup.button.callback('+', `qty:increase:${productId}`),
+                    ],
+                    [Markup.button.url('⭐ Отзывы', 'https://t.me')],
+                    [Markup.button.callback('🛒 Добавить в корзину', `addToCart:${productId}:qty:${qty}`)],
+                ]).reply_markup
+            );
+            await ctx.answerCbQuery();
+        }
+
+    }
+    @Action(/^addToCart:(.+):qty:(.+)$/)
+    async addToCart(@Ctx() ctx: Context){
+        const productId = (ctx as any).match[1]
+        let quantity = (ctx as any).match[2]
+        const product = await this.productService.findOne({
+            where:{
+                id: productId
+            }
+        })
         const user = await this.userService.findOne({
             where:{
                 telegramId: BigInt(ctx.from!.id)
             }
         })
-        console.log('123')
+        const cart = await this.cartService.findOne({
+            where:{
+                user: {id: user?.id}
+            }, relations: ['items', 'items.product']
+        })
+        const item = cart!.items.find(item => item.productId === product?.id)
+        if(item){
+            console.log(typeof item.quantity,typeof quantity)
+            item.quantity += Number(quantity)
+            if(item.quantity > product!.inStock){
+                await ctx.editMessageCaption(`🏷 Название: ${product!.title}\n 💸 Стоимость: ${product!.price} ₽ \n 📝 Описание: ${product!.description} \n 🧵 Материал: ${product!.material} \n 📏 Размеры: ${product!.dimensions} \n 📦 В наличии: ${0}`,
+                    {
+                        reply_markup:{
+                            inline_keyboard:[
+                                [
+                                    Markup.button.callback('−', `qty:decrease:${productId}`),
+                                    Markup.button.callback(`${quantity} шт.`, 'noop'),
+                                    Markup.button.callback('+', `qty:increase:${productId}`),
+                                ],
+                                [Markup.button.url('⭐ Отзывы', 'https://t.me')],
+                                [Markup.button.callback('🛒 Добавить в корзину', `addToCart:${productId}:qty:${++quantity-1}`)],
+                            ]
+                        }
+
+                    }
+                )
+            }else{
+                product!.inStock -= quantity
+                console.log(item.quantity)
+                if(product === null){
+                    return 'asd'
+                }
+                await this.productService.save(product)
+                await this.cartItem.save(item)
+                await ctx.editMessageCaption(`🏷 Название: ${product!.title}\n 💸 Стоимость: ${product!.price} ₽ \n 📝 Описание: ${product!.description} \n 🧵 Материал: ${product!.material} \n 📏 Размеры: ${product!.dimensions} \n 📦 В наличии: ${product!.inStock}`,
+                    {
+                        reply_markup:{
+                            inline_keyboard:[
+                                [Markup.button.callback('⬅️ Назад', 'back_to_menu')]
+                            ]
+                        }
+
+                    }
+                )
+
+                //await this.productService.save(product)
+                //return await this.cartItem.save(item)
+            }
+        }
+        // else{
+        //     const newItem = await this.cartItem.save(this.cartItem.create({
+        //         productId: product.id,
+        //         quantity: dto.quantity,
+        //         cartId: cart.id
+        //     }))
+        //     return newItem
+        // }
+
     }
     @Action('profile')
     async profile(@Ctx() ctx: Context){
@@ -164,11 +285,14 @@ export class TelegramUpdate{
                 userId: user?.id
             }, relations: ['items', 'items.product']
         })
+        const totalPrice = cart?.items.reduce((sum, item) => {
+            return sum + item.product.price * item.quantity;
+        }, 0);
         const cartItem = cart?.items.map((item) => {
-            return `🆔 **ID Товара:** ${item.id} \n 🏷 **Название товара: ** ${item.product.title} \n 📦 **Количество: ** ${item.quantity}`;
+            return `🏷 *${item.product.title}* \n *Количество: * ${item.quantity} \n *Цена:* ${item.product.price} ₽ × ${item.quantity} = ${item.product.price * item.quantity} ₽ \n\n *💳 Итого:* ${totalPrice} ₽` ;
         }).join(`\n\n`)
         const message = `
-        🛒 **Ваша корзина:**
+        🛒 *Ваша корзина:*
         \n${cartItem}
         `
         await ctx.editMessageText(message, {

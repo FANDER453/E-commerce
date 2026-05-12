@@ -1,12 +1,20 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateProductDto } from './create.product.dto';
-import { IsNotEmpty } from 'class-validator';
+import {IsEmpty, IsNotEmpty, IsOptional} from 'class-validator';
 
 export class UpdateProductDto extends PartialType(CreateProductDto) {
-  @IsNotEmpty()
-  urlPicture: string;
+    @IsOptional()
+    urlPicture: string;
 
-  @IsNotEmpty()
-  price: number;
+    @IsOptional()
+    price: number;
+
+    @IsOptional()
+    inStock: number
+
+    @IsOptional()
+    dimensions: string
+
+
 }
 

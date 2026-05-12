@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {HttpException, HttpStatus, Injectable, NotFoundException} from '@nestjs/common';
 import { CreateProductDto } from './dto/create.product.dto';
 import { UpdateProductDto } from './dto/update.product.dto';
 import { Repository } from 'typeorm';
@@ -88,7 +88,13 @@ export class ProductService {
     const item = cart.items.find(item => item.productId === product.id)
     if(item){
         item.quantity += dto.quantity
-        return await this.cartItem.save(item)
+        if(item.quantity > product.inStock){
+            throw new HttpException('The product is out of stock', HttpStatus.BAD_REQUEST)
+        }else{
+            product.inStock -= item.quantity
+            await this.productService.save(product)
+            return await this.cartItem.save(item)
+        }
     }else{
         const newItem = await this.cartItem.save(this.cartItem.create({
             productId: product.id,

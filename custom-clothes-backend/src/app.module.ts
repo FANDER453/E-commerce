@@ -12,12 +12,13 @@ import { TelegramModule } from './telegram/telegram.module';
 import {TelegrafModule} from "nestjs-telegraf";
 import {HttpsProxyAgent} from "https-proxy-agent";
 import * as path from 'path';
+import {session} from "telegraf";
 
 @Module({
   imports: [
     TelegrafModule.forRoot({
         token: '8765587777:AAF0HhQQWm-6JHMsIU4UEDqrKzSK20XFGiw',
-
+        middlewares: [session()]
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
@@ -27,8 +28,8 @@ import * as path from 'path';
       password: process.env.DB_PASSWORD || '1111',
       database: process.env.DB_NAME || 'project',
       autoLoadEntities: true,
-      synchronize: true,
-      dropSchema: true,
+      //synchronize: true,
+      //dropSchema: true,
     }),
     AuthModule,
     UserModule,
