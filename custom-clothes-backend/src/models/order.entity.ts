@@ -9,9 +9,10 @@ export class OrderEntity{
     id: string
 
     @Column({ 
-        nullable: true,
+        nullable: false,
         type: 'enum',
         enum: OrderStatus,
+        default: OrderStatus.PENDING
      })
     status: OrderStatus
 

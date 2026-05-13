@@ -1,8 +1,10 @@
 export enum OrderStatus{
-    PENDING = 'pending',
-    PROCESSING = 'processing',
-    SHIPPED = 'shipped',
-    DELIVERING = 'delivering',
-    READY_FOR_PICKED = 'ready_for_picked',
-    COMPLITED = 'complited'
+    PENDING = 'В ожидании подтверждения',
+    CONFIRMED = 'Подтверждён продавцом',
+    PAID = 'Оплачен',
+    PACKING = 'Собирается',
+    SHIPPED = 'Отправлен',
+    DELIVERING = 'Доставлен',
+    CANCELLED = 'Отменён',
+    REFUNDED = 'Возврат денег',
 }

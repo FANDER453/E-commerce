@@ -1,10 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { CartEntity, CartItem } from 'src/models/cart.entity';
-import { OrderEntity, OrderItem} from 'src/models/order.entity';
-import { ProductEntity } from 'src/models/product.entity';
-import { UserEntity } from 'src/models/user.entity';
-import { EntityPropertyNotFoundError, Repository } from 'typeorm';
+import {Injectable} from '@nestjs/common';
+import {InjectRepository} from '@nestjs/typeorm';
+import {CartEntity, CartItem} from 'src/models/cart.entity';
+import {OrderEntity, OrderItem} from 'src/models/order.entity';
+import {UserEntity} from 'src/models/user.entity';
+import {Repository} from 'typeorm';
+import {OrderStatus} from "../enums/order.enum";
 
 @Injectable()
 export class OrderService {
@@ -37,6 +37,7 @@ export class OrderService {
         this.orderService.create({
             user: { id: user?.id },
             orderPrice: totalPrice,
+            status: OrderStatus.PENDING
         }),
     );
     cart?.items.map(async (item) => {
