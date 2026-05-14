@@ -51,8 +51,12 @@ export class TelegramUpdate{
         )
     }
 
-    private async showProduct(@Ctx() ctx: Context, index: number){
+    private async showProduct(@Ctx() ctx: Context, index: number, qty?: any){
         const product = await this.productService.find()
+        if(qty === undefined){
+            qty = 1
+        }
+        qty = (ctx as any).session['qty'] = ((ctx as any).session['qty'] || 1)
         if(index <= -1) {
             index = product.length - 1
         }
@@ -68,7 +72,7 @@ export class TelegramUpdate{
                 {
                     type: 'photo',
                     media: item.urlPicture,
-                    caption: `🏷 Название: ${item.title}\n 💸 Стоимость: ${item.price} ₽ \n 📝 Описание: ${item.description} \n 🧵 Материал: ${item.material} \n 📏 Размеры: ${item.dimensions} \n 📦 В наличии: ${item.inStock}`
+                    caption: `🏷 Название: ${item.title}\n💸 Стоимость: ${item.price} ₽ \n📝 Описание: ${item.description} \n🧵 Материал: ${item.material} \n📏 Размеры: ${item.dimensions} \n📦 В наличии: ${item.inStock}`
                 },
                 {
                     reply_markup: {
@@ -80,11 +84,11 @@ export class TelegramUpdate{
                             ],
                             [
                                 Markup.button.callback('-', `qty:decrease:${item.id}:${index}`),
-                                Markup.button.callback(`${1} шт`, 'current'),
+                                Markup.button.callback(`${qty} шт`, 'current'),
                                 Markup.button.callback('+', `qty:increase:${item.id}:${index}`),
                             ],
                             [Markup.button.url('⭐ Отзывы', 'https://t.me')],
-                            [Markup.button.callback('🛒 Добавить в корзину', `addToCart:${item.id}:qty:${1}:index:${index}`)],
+                            [Markup.button.callback('🛒 Добавить в корзину', `addToCart:${item.id}:qty:${qty}:index:${index}`)],
                             [Markup.button.callback('⬅️ Назад', 'back_to_menu')],
                         ]
                     }
@@ -108,7 +112,6 @@ export class TelegramUpdate{
             user.telegramLinkToken = 'null'
             if (ctx.from?.id != null) {
                 user.telegramId = BigInt(ctx.from?.id)
-                console.log(typeof user.telegramId)
             }
             user.telegramLinked = true
             await this.userService.save(user)
@@ -173,6 +176,7 @@ export class TelegramUpdate{
     @Action(/^qty:increase:(.+):(.+)$/)
     async increase(@Ctx() ctx: Context){
         const qty = (ctx as any).session['qty'] = ((ctx as any).session['qty'] || 1) + 1
+
         const productId = (ctx as any).match[1]
         const product = await this.productService.find()
         const index = Number((ctx as any).match[2])
@@ -189,8 +193,8 @@ export class TelegramUpdate{
                     Markup.button.callback('+', `qty:increase:${productId}:${index}`),
                 ],
                 [Markup.button.url('⭐ Отзывы', 'https://t.me')],
-                [Markup.button.callback('🛒 Добавить в корзину', `addToCart:${productId}:qty:${qty}`)],
-                [Markup.button.callback('⬅️ Назад', 'back_to_menu')],
+                [Markup.button.callback('🛒 Добавить в корзину', `addToCart:${productId}:qty:${qty}:index:${index}`)],
+                [Markup.button.callback('⬅️ Назад', `back_to_menu`)],
             ]).reply_markup
         );
         await ctx.answerCbQuery();
@@ -218,8 +222,8 @@ export class TelegramUpdate{
                         Markup.button.callback('+', `qty:increase:${productId}:${index}`),
                     ],
                     [Markup.button.url('⭐ Отзывы', 'https://t.me')],
-                    [Markup.button.callback('🛒 Добавить в корзину', `addToCart:${productId}:qty:${qty}`)],
-                    [Markup.button.callback('⬅️ Назад', 'back_to_menu')],
+                    [Markup.button.callback('🛒 Добавить в корзину', `addToCart:${productId}:qty:${qty}:index:${index}`)],
+                    [Markup.button.callback('⬅️ Назад', `back_to_menu:${qty}`)],
                 ]).reply_markup
             );
         }
@@ -248,10 +252,8 @@ export class TelegramUpdate{
         const item = cart!.items.find(item => item.productId === product?.id)
         if(item){
             item.quantity += Number(quantity)
-            console.log(item.quantity)
-            console.log(product!.inStock)
             if(product!.inStock <= 0){
-                await ctx.editMessageCaption(`🏷 Название: ${product!.title}\n 💸 Стоимость: ${product!.price} ₽ \n 📝 Описание: ${product!.description} \n 🧵 Материал: ${product!.material} \n 📏 Размеры: ${product!.dimensions} \n 📦 В наличии: ${0}`,
+                return await ctx.editMessageCaption(`🏷 Название: ${product!.title}\n 💸 Стоимость: ${product!.price} ₽ \n 📝 Описание: ${product!.description} \n 🧵 Материал: ${product!.material} \n 📏 Размеры: ${product!.dimensions} \n 📦 В наличии: ${0}`,
                     {
                         reply_markup:{
                             inline_keyboard:[
@@ -268,7 +270,7 @@ export class TelegramUpdate{
                 }
                 await this.productService.save(product)
                 await this.cartItem.save(item)
-                await this.showProduct(ctx, Number(index))
+                await this.showProduct(ctx, Number(index), quantity)
             }
         }
         else{
@@ -283,7 +285,7 @@ export class TelegramUpdate{
             await this.productService.save(product!)
             await this.cartItem.save(newItem)
 
-            await this.showProduct(ctx, index)
+            return await this.showProduct(ctx, Number(index), quantity)
         }
 
     }
@@ -332,7 +334,6 @@ export class TelegramUpdate{
         const cartItem = cart?.items.map((item) => {
             return `🏷 *${item.product.title}* \n *Количество: * ${item.quantity} \n *Цена:* ${item.product.price} ₽ × ${item.quantity} = ${item.product.price * item.quantity} ₽ \n ` ;
         }).join(``)
-        console.log(totalPrice)
         const message = `
         🛒 *Ваша корзина:*
         \n${cartItem}
@@ -464,7 +465,7 @@ export class TelegramService {
         @InjectRepository(UserEntity)
         private userService: Repository<UserEntity>,
     ) {}
-    async getTelegramKey(unParsApiKey) {
+    async getTelegramKey(unParsApiKey: string) {
         const apiKey = unParsApiKey.split(' ')[1]
         const userApi = jwt.verify(apiKey, process.env.ACCESS_KEY!) as JwtPayload
         const token = uuid.v4()
@@ -478,7 +479,6 @@ export class TelegramService {
             return {message: 'Your telegram have been connect'}
         }
         user.telegramLinkToken = token
-        console.log(user)
         await this.userService.save(user)
         return {"token": `https://t.me/shizo_shop_bot?start=${token}`}
     }
