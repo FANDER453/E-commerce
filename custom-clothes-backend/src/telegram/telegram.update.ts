@@ -340,7 +340,7 @@ export class TelegramUpdate{
         \n*💳 Итого:* ${totalPrice} ₽
         `
         if(totalPrice == 0){
-            await ctx.answerCbQuery('Корщина пуста')
+            await ctx.answerCbQuery('Корзина пуста')
         }else {
             await ctx.editMessageText(message, {
                 parse_mode: 'Markdown',
